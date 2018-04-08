@@ -9,7 +9,6 @@ import cv2
 import pandas as pd
 import math
 import numpy as np
-import matplotlib.pyplot as plt
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -21,7 +20,7 @@ MODEL_NAME = "2048_model.h5"
 MOVES = ["UP", "DOWN", "LEFT", "RIGHT"]
 MOVE_COL_NAME = "MOVE"
 N_SIZE = 4
-N_FILES = 11
+N_FILES = 17
 TRAIN_MODEL = True
 
 def load_data(file, direc=GAMES_DIR, header=True):
@@ -45,8 +44,8 @@ from sklearn.preprocessing import LabelBinarizer
 from keras.callbacks import ModelCheckpoint, EarlyStopping
 from keras.models import load_model
 
-batch_size = 64
-epochs = 30
+batch_size = 512
+epochs = 20
 
 size = N_SIZE
 num_classes = len(MOVES)
@@ -67,14 +66,38 @@ if model is None:
     
     model.add(Conv2D(n_feature_maps, kernel_size=(1, 1), strides=(1, 1), activation=activation_fn, padding='valid'))
     model.add(BatchNormalization())
-
-    model.add(Conv2D(n_feature_maps, kernel_size=(2, 2), strides=(1, 1), activation=activation_fn, padding='valid'))
+    
+    model.add(Conv2D(n_feature_maps, kernel_size=(1, 1), strides=(1, 1), activation=activation_fn, padding='valid'))
     model.add(BatchNormalization())
 
-    model.add(Conv2D(n_feature_maps, kernel_size=(2, 2), strides=(1, 1), activation=activation_fn, padding='valid'))
+    model.add(Conv2D(2 * n_feature_maps, kernel_size=(2, 2), strides=(1, 1), activation=activation_fn, padding='valid'))
     model.add(BatchNormalization())
     
-    model.add(Conv2D(n_feature_maps, kernel_size=(2, 2), strides=(1, 1), activation=activation_fn, padding='valid'))
+    model.add(Conv2D(n_feature_maps, kernel_size=(1, 1), strides=(1, 1), activation=activation_fn, padding='valid'))
+    model.add(BatchNormalization())
+    
+    model.add(Conv2D(n_feature_maps, kernel_size=(1, 1), strides=(1, 1), activation=activation_fn, padding='valid'))
+    model.add(BatchNormalization())
+    
+    model.add(Conv2D(n_feature_maps, kernel_size=(1, 1), strides=(1, 1), activation=activation_fn, padding='valid'))
+    model.add(BatchNormalization())
+
+    model.add(Conv2D(2 * n_feature_maps, kernel_size=(2, 2), strides=(1, 1), activation=activation_fn, padding='valid'))
+    model.add(BatchNormalization())
+    
+    model.add(Conv2D(n_feature_maps, kernel_size=(1, 1), strides=(1, 1), activation=activation_fn, padding='valid'))
+    model.add(BatchNormalization())
+    
+    model.add(Conv2D(n_feature_maps, kernel_size=(1, 1), strides=(1, 1), activation=activation_fn, padding='valid'))
+    model.add(BatchNormalization())
+    
+    model.add(Conv2D(n_feature_maps, kernel_size=(1, 1), strides=(1, 1), activation=activation_fn, padding='valid'))
+    model.add(BatchNormalization())
+    
+    model.add(Conv2D(2 * n_feature_maps, kernel_size=(2, 2), strides=(1, 1), activation=activation_fn, padding='valid'))
+    model.add(BatchNormalization())
+    
+    model.add(Conv2D(n_feature_maps, kernel_size=(1, 1), strides=(1, 1), activation=activation_fn, padding='valid'))
     model.add(BatchNormalization())
     
     model.add(Conv2D(n_feature_maps, kernel_size=(1, 1), strides=(1, 1), activation=activation_fn, padding='valid'))
@@ -97,6 +120,10 @@ if model is None:
     model.add(Dense(128, activation=activation_fn))
     model.add(BatchNormalization())
     model.add(Dropout(droprate))
+    
+    model.add(Dense(64, activation=activation_fn))
+    model.add(BatchNormalization())
+    model.add(Dropout(droprate))
 
     model.add(Dense(num_classes, activation='softmax'))
 
@@ -115,48 +142,30 @@ callbacks = [ModelCheckpoint(MODEL_NAME, monitor='val_acc', verbose=1, save_best
 # In[3]:
 
 
-def get_features_labels(n_file, direc, group_n_games=1, validation=False):
-    x = []
-    y = []
+def get_features_labels(n_file, direc):
     
-    if not validation:
-        group_n_games = 1
-
-    for indx in range(group_n_games):
-        
-        filename = GAME_STATE_FILE_NAME + str(n_file % N_FILES) + GAME_STATE_FILE_EXT
-        if validation:
-            n_file = n_file - 1
-            
-        print("validating/training", validation, filename)
+    filename = GAME_STATE_FILE_NAME + str(n_file) + GAME_STATE_FILE_EXT
                                                   
-        data = load_data(file=filename, direc=direc)
+    data = load_data(file=filename, direc=direc)
     
-        labels = data[MOVE_COL_NAME].values
-        data.drop(MOVE_COL_NAME, axis=1, inplace=True)
-        binarizer = LabelBinarizer()
-        binarizer.fit([0, 1, 2, 3])
-        labels = binarizer.transform(labels)
+    labels = data[MOVE_COL_NAME].values
+    data.drop(MOVE_COL_NAME, axis=1, inplace=True)
+    binarizer = LabelBinarizer()
+    binarizer.fit([0, 1, 2, 3])
+    labels = binarizer.transform(labels)
 
-        features = data.values
-        features = np.reshape(features, (-1, N_SIZE, N_SIZE, 1))
-        
-        if len(x) == 0:
-            x = features
-            y = labels
-        else:
-            x = np.concatenate((x, features), axis=0)
-            y = np.concatenate((y, labels), axis=0)
-                                              
-    return x, y
+    features = data.values
+    features = np.reshape(features, (-1, N_SIZE, N_SIZE, 1))
+    
+    return features, labels
 
 
-# In[4]:
+# In[ ]:
 
 
 for n_file in range(N_FILES):
     features, labels = get_features_labels(n_file, direc=PROCESSED_GAMES_DIR)
-    val_features, val_labels = get_features_labels(n_file, direc=PROCESSED_GAMES_DIR, group_n_games=3, validation=True)
+    val_features, val_labels = get_features_labels(N_FILES, direc=PROCESSED_GAMES_DIR)
 
     if TRAIN_MODEL:
         history = model.fit(features, labels,
@@ -166,7 +175,7 @@ for n_file in range(N_FILES):
                         validation_data=(val_features, val_labels),
                         callbacks=callbacks)
 
-        score = model.evaluate(val_features, val_labels, verbose=1)
+        score = model.evaluate(val_features, val_labels, verbose=0)
         print('Test loss:', score[0])
         print('Test accuracy:', score[1])
     else:
