@@ -58,7 +58,7 @@ except:
 
 if model is None:
     activation_fn = 'elu'
-    n_feature_maps = 256
+    n_feature_maps = 128
     
     model = Sequential()
     model.add(Conv2D(n_feature_maps, kernel_size=(1, 1), strides=(1, 1), activation=activation_fn, input_shape=(N_SIZE, N_SIZE, 1)))
@@ -147,16 +147,21 @@ def get_features_labels(n_file, direc, validation=False):
     y = []
     
     if validation:
-        group_n_games = N_FILES
+        group_n_games = 3
     else:
         group_n_games = 1
         
     for indx in range(group_n_games):
         
-        filename = GAME_STATE_FILE_NAME + str(n_file) + GAME_STATE_FILE_EXT
-                                                  
+        filename = GAME_STATE_FILE_NAME + str(n_file % N_FILES) + GAME_STATE_FILE_EXT
+        n_file = n_file - 1                                          
         data = load_data(file=filename, direc=direc)
-    
+
+	if validation:
+           print("Vaidating on ", filename)
+        else:
+           print("Training on ", filename)
+        
         labels = data[MOVE_COL_NAME].values
         data.drop(MOVE_COL_NAME, axis=1, inplace=True)
         binarizer = LabelBinarizer()
@@ -179,11 +184,11 @@ def get_features_labels(n_file, direc, validation=False):
 # In[4]:
 
 
-val_features, val_labels = get_features_labels(0, direc=PROCESSED_GAMES_DIR, validation=True)
+#val_features, val_labels = get_features_labels(0, direc=PROCESSED_GAMES_DIR, validation=True)
 
 for n_file in range(N_FILES):
     features, labels = get_features_labels(n_file, direc=PROCESSED_GAMES_DIR)
-
+    val_features, val_labels = get_features_labels(n_file, direc=PROCESSED_GAMES_DIR, validation=True)
     if TRAIN_MODEL:
         history = model.fit(features, labels,
                         batch_size=batch_size,
