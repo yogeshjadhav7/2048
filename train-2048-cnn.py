@@ -44,7 +44,7 @@ from sklearn.preprocessing import LabelBinarizer
 from keras.callbacks import ModelCheckpoint, EarlyStopping
 from keras.models import load_model
 
-batch_size = 512
+batch_size = 128
 epochs = 20
 
 size = N_SIZE
