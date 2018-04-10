@@ -20,7 +20,7 @@ MODEL_NAME = "2048_model.h5"
 MOVES = ["UP", "DOWN", "LEFT", "RIGHT"]
 MOVE_COL_NAME = "MOVE"
 N_SIZE = 4
-N_FILES = 18
+N_FILES = len(os.listdir(PROCESSED_GAMES_DIR))
 TRAIN_MODEL = True
 
 def load_data(file, direc=GAMES_DIR, header=True):
@@ -44,7 +44,7 @@ from sklearn.preprocessing import LabelBinarizer
 from keras.callbacks import ModelCheckpoint, EarlyStopping
 from keras.models import load_model
 
-batch_size = 128
+batch_size = 64
 epochs = 20
 
 size = N_SIZE
@@ -183,9 +183,6 @@ def get_features_labels(n_file, direc, validation=False):
 
 # In[4]:
 
-
-#val_features, val_labels = get_features_labels(0, direc=PROCESSED_GAMES_DIR, validation=True)
-
 for n_file in range(N_FILES):
     features, labels = get_features_labels(n_file, direc=PROCESSED_GAMES_DIR)
     val_features, val_labels = get_features_labels(n_file, direc=PROCESSED_GAMES_DIR, validation=True)
@@ -197,7 +194,8 @@ for n_file in range(N_FILES):
                         validation_data=(val_features, val_labels),
                         callbacks=callbacks)
 
-        score = model.evaluate(val_features, val_labels, verbose=0)
+        saved_model = load_model(MODEL_NAME)
+        score = saved_model.evaluate(val_features, val_labels, verbose=0)
         print('Test loss:', score[0])
         print('Test accuracy:', score[1])
     else:
