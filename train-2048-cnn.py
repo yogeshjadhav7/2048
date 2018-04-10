@@ -58,7 +58,7 @@ except:
 
 if model is None:
     activation_fn = 'elu'
-    n_feature_maps = 128
+    n_feature_maps = 128 
     
     model = Sequential()
     model.add(Conv2D(n_feature_maps, kernel_size=(1, 1), strides=(1, 1), activation=activation_fn, input_shape=(N_SIZE, N_SIZE, 1)))
@@ -147,7 +147,7 @@ def get_features_labels(n_file, direc, validation=False):
     y = []
     
     if validation:
-        group_n_games = 3
+        group_n_games = N_FILES
     else:
         group_n_games = 1
         
@@ -156,11 +156,6 @@ def get_features_labels(n_file, direc, validation=False):
         filename = GAME_STATE_FILE_NAME + str(n_file % N_FILES) + GAME_STATE_FILE_EXT
         n_file = n_file - 1                                          
         data = load_data(file=filename, direc=direc)
-
-	if validation:
-           print("Vaidating on ", filename)
-        else:
-           print("Training on ", filename)
         
         labels = data[MOVE_COL_NAME].values
         data.drop(MOVE_COL_NAME, axis=1, inplace=True)
