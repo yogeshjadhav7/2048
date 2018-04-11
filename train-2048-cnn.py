@@ -179,12 +179,12 @@ def get_features_labels(n_file, direc, validation=False):
 
 
 callbacks = [ModelCheckpoint(MODEL_NAME, monitor='val_acc', verbose=1, save_best_only=True, save_weights_only=False, mode='max', period=1)]
+val_features, val_labels = get_features_labels(0, direc=PROCESSED_GAMES_DIR, validation=True)
 
 for n_file in range(N_FILES):
     print("\n\n\n\nSTARTED WITH GAME #", n_file)
     features, labels = get_features_labels(n_file, direc=PROCESSED_GAMES_DIR)
-    val_features, val_labels = get_features_labels(0, direc=PROCESSED_GAMES_DIR)
-
+    
     if TRAIN_MODEL:
         history = model.fit(features, labels,
                         batch_size=batch_size,
