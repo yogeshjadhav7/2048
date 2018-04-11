@@ -44,8 +44,8 @@ from sklearn.preprocessing import LabelBinarizer
 from keras.callbacks import ModelCheckpoint, EarlyStopping
 from keras.models import load_model
 
-batch_size = 64
-epochs = 20
+batch_size = 128
+epochs = 250
 
 size = N_SIZE
 num_classes = len(MOVES)
@@ -58,7 +58,7 @@ except:
 
 if model is None:
     activation_fn = 'elu'
-    n_feature_maps = 128 
+    n_feature_maps = 256
     
     model = Sequential()
     model.add(Conv2D(n_feature_maps, kernel_size=(1, 1), strides=(1, 1), activation=activation_fn, input_shape=(N_SIZE, N_SIZE, 1)))
@@ -136,8 +136,6 @@ model.compile(loss='categorical_crossentropy',
               optimizer=adam,
               metrics=['accuracy'])
 
-callbacks = [ModelCheckpoint(MODEL_NAME, monitor='val_acc', verbose=1, save_best_only=True, save_weights_only=False, mode='max', period=1)]
-
 
 # In[3]:
 
@@ -154,9 +152,10 @@ def get_features_labels(n_file, direc, validation=False):
     for indx in range(group_n_games):
         
         filename = GAME_STATE_FILE_NAME + str(n_file % N_FILES) + GAME_STATE_FILE_EXT
-        n_file = n_file - 1                                          
-        data = load_data(file=filename, direc=direc)
+        n_file = n_file - 1
         
+        data = load_data(file=filename, direc=direc)
+    
         labels = data[MOVE_COL_NAME].values
         data.drop(MOVE_COL_NAME, axis=1, inplace=True)
         binarizer = LabelBinarizer()
@@ -178,9 +177,14 @@ def get_features_labels(n_file, direc, validation=False):
 
 # In[4]:
 
+
+callbacks = [ModelCheckpoint(MODEL_NAME, monitor='val_acc', verbose=1, save_best_only=True, save_weights_only=False, mode='max', period=1)]
+
 for n_file in range(N_FILES):
+    print("\n\n\n\nSTARTED WITH GAME #", n_file)
     features, labels = get_features_labels(n_file, direc=PROCESSED_GAMES_DIR)
-    val_features, val_labels = get_features_labels(n_file, direc=PROCESSED_GAMES_DIR, validation=True)
+    val_features, val_labels = get_features_labels(0, direc=PROCESSED_GAMES_DIR)
+
     if TRAIN_MODEL:
         history = model.fit(features, labels,
                         batch_size=batch_size,
@@ -191,8 +195,8 @@ for n_file in range(N_FILES):
 
         saved_model = load_model(MODEL_NAME)
         score = saved_model.evaluate(val_features, val_labels, verbose=0)
-        print('Test loss:', score[0])
-        print('Test accuracy:', score[1])
+        print('Saved Model Test loss:', score[0])
+        print('Saved Model Test accuracy:', score[1])
     else:
         print("Opted not to train the model as TRAIN_MODEL is set to False. May be because model is already trained and is now being used for validation")
 
