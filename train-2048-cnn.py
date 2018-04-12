@@ -45,11 +45,11 @@ from keras.callbacks import ModelCheckpoint, EarlyStopping
 from keras.models import load_model
 
 batch_size = 128
-epochs = 250
+epochs = 50
 
 size = N_SIZE
 num_classes = len(MOVES)
-droprate = 0.7
+droprate = 0.5
 
 try:
     model = load_model(MODEL_NAME)
@@ -57,8 +57,8 @@ except:
     model = None
 
 if model is None:
-    activation_fn = 'elu'
-    n_feature_maps = 256
+    activation_fn = 'tanh'
+    n_feature_maps = 128
     
     model = Sequential()
     model.add(Conv2D(n_feature_maps, kernel_size=(1, 1), strides=(1, 1), activation=activation_fn, input_shape=(N_SIZE, N_SIZE, 1)))
@@ -179,24 +179,24 @@ def get_features_labels(n_file, direc, validation=False):
 
 
 callbacks = [ModelCheckpoint(MODEL_NAME, monitor='val_acc', verbose=1, save_best_only=True, save_weights_only=False, mode='max', period=1)]
-val_features, val_labels = get_features_labels(0, direc=PROCESSED_GAMES_DIR, validation=True)
 
 for n_file in range(N_FILES):
-    print("\n\n\n\nSTARTED WITH GAME #", n_file)
+    print("\n\n\n\n\n", "STARTED WITH GAME #", n_file)
     features, labels = get_features_labels(n_file, direc=PROCESSED_GAMES_DIR)
+    val_features, val_labels = get_features_labels(n_file, direc=PROCESSED_GAMES_DIR)
     
     if TRAIN_MODEL:
         history = model.fit(features, labels,
                         batch_size=batch_size,
                         epochs=epochs,
-                        verbose=0,
+                        verbose=1,
                         validation_data=(val_features, val_labels),
                         callbacks=callbacks)
 
-        saved_model = load_model(MODEL_NAME)
-        score = saved_model.evaluate(val_features, val_labels, verbose=0)
-        print('Saved Model Test loss:', score[0])
-        print('Saved Model Test accuracy:', score[1])
+        #saved_model = load_model(MODEL_NAME)
+        #score = saved_model.evaluate(val_features, val_labels, verbose=0)
+        #print('Saved Model Test loss:', score[0])
+        #print('Saved Model Test accuracy:', score[1])
     else:
         print("Opted not to train the model as TRAIN_MODEL is set to False. May be because model is already trained and is now being used for validation")
 
