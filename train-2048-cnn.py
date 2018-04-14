@@ -44,97 +44,105 @@ from sklearn.preprocessing import LabelBinarizer
 from keras.callbacks import ModelCheckpoint, EarlyStopping
 from keras.models import load_model
 
-batch_size = 128
-epochs = 50
+batch_size = 32
+epochs = 150
 
 size = N_SIZE
 num_classes = len(MOVES)
-droprate = 0.5
+droprate = 0.7
+N_MODELS = N_FILES
 
-try:
-    model = load_model(MODEL_NAME)
-except:
-    model = None
+def create_model(index, show_summary=False):
+    model_name = str(index) + "_" + MODEL_NAME
+    
+    try:
+        model = load_model(model_name)
+    except:
+        model = None
 
-if model is None:
-    activation_fn = 'tanh'
-    n_feature_maps = 128
-    
-    model = Sequential()
-    model.add(Conv2D(n_feature_maps, kernel_size=(1, 1), strides=(1, 1), activation=activation_fn, input_shape=(N_SIZE, N_SIZE, 1)))
-    model.add(BatchNormalization())
-    
-    model.add(Conv2D(n_feature_maps, kernel_size=(1, 1), strides=(1, 1), activation=activation_fn, padding='valid'))
-    model.add(BatchNormalization())
-    
-    model.add(Conv2D(n_feature_maps, kernel_size=(1, 1), strides=(1, 1), activation=activation_fn, padding='valid'))
-    model.add(BatchNormalization())
+    if model is None:
+        activation_fn = 'tanh'
+        n_feature_maps = 256
 
-    model.add(Conv2D(2 * n_feature_maps, kernel_size=(2, 2), strides=(1, 1), activation=activation_fn, padding='valid'))
-    model.add(BatchNormalization())
-    
-    model.add(Conv2D(n_feature_maps, kernel_size=(1, 1), strides=(1, 1), activation=activation_fn, padding='valid'))
-    model.add(BatchNormalization())
-    
-    model.add(Conv2D(n_feature_maps, kernel_size=(1, 1), strides=(1, 1), activation=activation_fn, padding='valid'))
-    model.add(BatchNormalization())
-    
-    model.add(Conv2D(n_feature_maps, kernel_size=(1, 1), strides=(1, 1), activation=activation_fn, padding='valid'))
-    model.add(BatchNormalization())
+        model = Sequential()
+        model.add(Conv2D(8 * n_feature_maps, kernel_size=(1, 1), strides=(1, 1), activation=activation_fn, input_shape=(N_SIZE, N_SIZE, 1)))
+        model.add(BatchNormalization())
 
-    model.add(Conv2D(2 * n_feature_maps, kernel_size=(2, 2), strides=(1, 1), activation=activation_fn, padding='valid'))
-    model.add(BatchNormalization())
-    
-    model.add(Conv2D(n_feature_maps, kernel_size=(1, 1), strides=(1, 1), activation=activation_fn, padding='valid'))
-    model.add(BatchNormalization())
-    
-    model.add(Conv2D(n_feature_maps, kernel_size=(1, 1), strides=(1, 1), activation=activation_fn, padding='valid'))
-    model.add(BatchNormalization())
-    
-    model.add(Conv2D(n_feature_maps, kernel_size=(1, 1), strides=(1, 1), activation=activation_fn, padding='valid'))
-    model.add(BatchNormalization())
-    
-    model.add(Conv2D(2 * n_feature_maps, kernel_size=(2, 2), strides=(1, 1), activation=activation_fn, padding='valid'))
-    model.add(BatchNormalization())
-    
-    model.add(Conv2D(n_feature_maps, kernel_size=(1, 1), strides=(1, 1), activation=activation_fn, padding='valid'))
-    model.add(BatchNormalization())
-    
-    model.add(Conv2D(n_feature_maps, kernel_size=(1, 1), strides=(1, 1), activation=activation_fn, padding='valid'))
-    model.add(BatchNormalization())
-    
-    model.add(Conv2D(n_feature_maps, kernel_size=(1, 1), strides=(1, 1), activation=activation_fn, padding='valid'))
-    model.add(BatchNormalization())
-    
-    model.add(Dropout(droprate))
-    model.add(Flatten())
+        model.add(Conv2D(8 * n_feature_maps, kernel_size=(1, 1), strides=(1, 1), activation=activation_fn, padding='valid'))
+        model.add(BatchNormalization())
 
-    model.add(Dense(512, activation=activation_fn))
-    model.add(BatchNormalization())
-    model.add(Dropout(droprate))
+        model.add(Conv2D(8 * n_feature_maps, kernel_size=(1, 1), strides=(1, 1), activation=activation_fn, padding='valid'))
+        model.add(BatchNormalization())
 
-    model.add(Dense(256, activation=activation_fn))
-    model.add(BatchNormalization())
-    model.add(Dropout(droprate))
+        model.add(Conv2D(4 * n_feature_maps, kernel_size=(2, 2), strides=(1, 1), activation=activation_fn, padding='valid'))
+        model.add(BatchNormalization())
 
-    model.add(Dense(128, activation=activation_fn))
-    model.add(BatchNormalization())
-    model.add(Dropout(droprate))
+        model.add(Conv2D(4 * n_feature_maps, kernel_size=(1, 1), strides=(1, 1), activation=activation_fn, padding='valid'))
+        model.add(BatchNormalization())
+
+        model.add(Conv2D(4* n_feature_maps, kernel_size=(1, 1), strides=(1, 1), activation=activation_fn, padding='valid'))
+        model.add(BatchNormalization())
+
+        model.add(Conv2D(4 * n_feature_maps, kernel_size=(1, 1), strides=(1, 1), activation=activation_fn, padding='valid'))
+        model.add(BatchNormalization())
+
+        model.add(Conv2D(2 * n_feature_maps, kernel_size=(2, 2), strides=(1, 1), activation=activation_fn, padding='valid'))
+        model.add(BatchNormalization())
+
+        model.add(Conv2D(2 * n_feature_maps, kernel_size=(1, 1), strides=(1, 1), activation=activation_fn, padding='valid'))
+        model.add(BatchNormalization())
+
+        model.add(Conv2D(2 * n_feature_maps, kernel_size=(1, 1), strides=(1, 1), activation=activation_fn, padding='valid'))
+        model.add(BatchNormalization())
+
+        model.add(Conv2D(2 * n_feature_maps, kernel_size=(1, 1), strides=(1, 1), activation=activation_fn, padding='valid'))
+        model.add(BatchNormalization())
+
+        model.add(Conv2D(n_feature_maps, kernel_size=(2, 2), strides=(1, 1), activation=activation_fn, padding='valid'))
+        model.add(BatchNormalization())
+
+        model.add(Conv2D(n_feature_maps, kernel_size=(1, 1), strides=(1, 1), activation=activation_fn, padding='valid'))
+        model.add(BatchNormalization())
+
+        model.add(Conv2D(n_feature_maps, kernel_size=(1, 1), strides=(1, 1), activation=activation_fn, padding='valid'))
+        model.add(BatchNormalization())
+
+        model.add(Conv2D(n_feature_maps, kernel_size=(1, 1), strides=(1, 1), activation=activation_fn, padding='valid'))
+        model.add(BatchNormalization())
+
+        model.add(Dropout(droprate))
+        model.add(Flatten())
+
+        model.add(Dense(512, activation=activation_fn))
+        model.add(BatchNormalization())
+        model.add(Dropout(droprate))
+
+        model.add(Dense(256, activation=activation_fn))
+        model.add(BatchNormalization())
+        model.add(Dropout(droprate))
+
+        model.add(Dense(128, activation=activation_fn))
+        model.add(BatchNormalization())
+        model.add(Dropout(droprate))
+
+        model.add(Dense(64, activation=activation_fn))
+        model.add(BatchNormalization())
+        model.add(Dropout(droprate))
+
+        model.add(Dense(num_classes, activation='softmax'))
+
+    else:
+        print(model_name, " is restored.")
+
+    if show_summary:
+        model.summary()
+        
+    adam = Adam()
+    model.compile(loss='categorical_crossentropy',
+                  optimizer=adam,
+                  metrics=['accuracy'])
     
-    model.add(Dense(64, activation=activation_fn))
-    model.add(BatchNormalization())
-    model.add(Dropout(droprate))
-
-    model.add(Dense(num_classes, activation='softmax'))
-
-else:
-    print(MODEL_NAME, " is restored.")
-
-model.summary()
-adam = Adam()
-model.compile(loss='categorical_crossentropy',
-              optimizer=adam,
-              metrics=['accuracy'])
+    return model_name, model
 
 
 # In[3]:
@@ -148,7 +156,7 @@ def get_features_labels(n_file, direc, validation=False):
         group_n_games = N_FILES
     else:
         group_n_games = 1
-        
+    
     for indx in range(group_n_games):
         
         filename = GAME_STATE_FILE_NAME + str(n_file % N_FILES) + GAME_STATE_FILE_EXT
@@ -178,10 +186,10 @@ def get_features_labels(n_file, direc, validation=False):
 # In[4]:
 
 
-callbacks = [ModelCheckpoint(MODEL_NAME, monitor='val_acc', verbose=1, save_best_only=True, save_weights_only=False, mode='max', period=1)]
-
 for n_file in range(N_FILES):
-    print("\n\n\n\n\n", "STARTED WITH GAME #", n_file)
+    model_name, model = create_model(index=(n_file % N_MODELS))
+    callbacks = [ModelCheckpoint(model_name, monitor='val_acc', verbose=1, save_best_only=True, save_weights_only=False, mode='max', period=1)]
+    print("\n\n\n\n\nSTARTED WITH GAME #" + str(n_file))
     features, labels = get_features_labels(n_file, direc=PROCESSED_GAMES_DIR)
     val_features, val_labels = get_features_labels(n_file, direc=PROCESSED_GAMES_DIR)
     
@@ -189,14 +197,14 @@ for n_file in range(N_FILES):
         history = model.fit(features, labels,
                         batch_size=batch_size,
                         epochs=epochs,
-                        verbose=1,
+                        verbose=0,
                         validation_data=(val_features, val_labels),
                         callbacks=callbacks)
-
-        #saved_model = load_model(MODEL_NAME)
-        #score = saved_model.evaluate(val_features, val_labels, verbose=0)
-        #print('Saved Model Test loss:', score[0])
-        #print('Saved Model Test accuracy:', score[1])
     else:
         print("Opted not to train the model as TRAIN_MODEL is set to False. May be because model is already trained and is now being used for validation")
+        
+#saved_model = load_model(MODEL_NAME)
+#score = saved_model.evaluate(val_features, val_labels, verbose=0)
+#print('Saved Model Test loss:', score[0])
+#print('Saved Model Test accuracy:', score[1])
 
