@@ -145,16 +145,14 @@ def create_model(index, show_summary=False):
     return model_name, model
 
 
-# In[3]:
+# In[5]:
 
 
-def get_features_labels(n_file, direc, validation=False):
+def get_features_labels(n_file, direc, group_n_games = N_FILES, validation=False):
     x = []
     y = []
     
-    if validation:
-        group_n_games = N_FILES
-    else:
+    if not validation:
         group_n_games = 1
     
     for indx in range(group_n_games):
@@ -191,7 +189,7 @@ for n_file in range(N_FILES):
     callbacks = [ModelCheckpoint(model_name, monitor='val_acc', verbose=1, save_best_only=True, save_weights_only=False, mode='max', period=1)]
     print("\n\n\n\n\nSTARTED WITH GAME #" + str(n_file))
     features, labels = get_features_labels(n_file, direc=PROCESSED_GAMES_DIR)
-    val_features, val_labels = get_features_labels(n_file, direc=PROCESSED_GAMES_DIR)
+    val_features, val_labels = get_features_labels(n_file, direc=PROCESSED_GAMES_DIR, group_n_games=2, validation=True)
     
     if TRAIN_MODEL:
         history = model.fit(features, labels,
