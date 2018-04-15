@@ -62,7 +62,7 @@ def create_model(index, show_summary=False):
 
     if model is None:
         activation_fn = 'tanh'
-        n_feature_maps = 256
+        n_feature_maps = 64
 
         model = Sequential()
         model.add(Conv2D(8 * n_feature_maps, kernel_size=(1, 1), strides=(1, 1), activation=activation_fn, input_shape=(N_SIZE, N_SIZE, 1)))
@@ -145,7 +145,7 @@ def create_model(index, show_summary=False):
     return model_name, model
 
 
-# In[5]:
+# In[3]:
 
 
 def get_features_labels(n_file, direc, group_n_games = N_FILES, validation=False):
@@ -160,6 +160,11 @@ def get_features_labels(n_file, direc, group_n_games = N_FILES, validation=False
         filename = GAME_STATE_FILE_NAME + str(n_file % N_FILES) + GAME_STATE_FILE_EXT
         n_file = n_file - 1
         
+        if validation:
+            print("Validating on " + filename)
+        else:
+            print("Training on " + filename)
+            
         data = load_data(file=filename, direc=direc)
     
         labels = data[MOVE_COL_NAME].values
@@ -189,7 +194,7 @@ for n_file in range(N_FILES):
     callbacks = [ModelCheckpoint(model_name, monitor='val_acc', verbose=1, save_best_only=True, save_weights_only=False, mode='max', period=1)]
     print("\n\n\n\n\nSTARTED WITH GAME #" + str(n_file))
     features, labels = get_features_labels(n_file, direc=PROCESSED_GAMES_DIR)
-    val_features, val_labels = get_features_labels(n_file, direc=PROCESSED_GAMES_DIR, group_n_games=2, validation=True)
+    val_features, val_labels = get_features_labels(n_file, direc=PROCESSED_GAMES_DIR, group_n_games=1, validation=True)
     
     if TRAIN_MODEL:
         history = model.fit(features, labels,
