@@ -24,6 +24,7 @@ FILE_HEADER = [""]
 N_SIZE = 4
 N_FILES = len(os.listdir(GAMES_DIR))
 MAX_CELL_VALUE_THRESHOLD = 10
+CELL_VALUE_RELATIVE_NORMALIZATION = False
 
 def load_data(file, direc=GAMES_DIR, header=True):
     csv_path = os.path.join(direc, file)
@@ -51,16 +52,17 @@ def normalize_row(row):
     row = np.log2(row)
     row = np.int16(row)
     
-    min_val = 100
-    for val in row:
-        if val == 0:
-            continue
-        
-        if min_val > val:
-            min_val = val
-            
-    if min_val > 0:
-        row = np.subtract(row, min_val - 1)
+    if CELL_VALUE_RELATIVE_NORMALIZATION:
+        min_val = 100
+        for val in row:
+            if val == 0:
+                continue
+
+            if min_val > val:
+                min_val = val
+
+        if min_val > 0:
+            row = np.subtract(row, min_val - 1)
         
     row_max = np.max(row)
     row = row / row_max
@@ -154,7 +156,7 @@ for n_file in range(N_FILES):
         record_dict = update_record(record_dict, row, move)
 
 
-# In[7]:
+# In[ ]:
 
 
 total_counter = 0
