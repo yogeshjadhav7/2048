@@ -1,7 +1,7 @@
 
 # coding: utf-8
 
-# In[8]:
+# In[1]:
 
 
 import os
@@ -131,6 +131,18 @@ def augment_data(row, move):
 record_dict = {}
 total_moves = 0
 dropped_counter = 0
+
+for n_file in range(N_FILES):
+    filename = GAME_STATE_FILE_NAME + str(n_file) + GAME_STATE_FILE_EXT
+    data = load_data(file=filename, direc=GAMES_DIR)
+    data_col = data.columns
+    data = np.float32(data.values)    
+    for n_row in range(len(data)):
+        row = data[n_row]
+        move, row = extract_move(row)
+        record_dict = update_record(record_dict, row, move)
+
+
 for n_file in range(N_FILES):
     filename = GAME_STATE_FILE_NAME + str(n_file) + GAME_STATE_FILE_EXT
     data = load_data(file=filename, direc=GAMES_DIR)
@@ -140,10 +152,17 @@ for n_file in range(N_FILES):
     for n_row in range(len(data)):
         row = data[n_row]
         move, row = extract_move(row)
-        if not CAP_MAX_CELL_VALUE:
+        
+        if CAP_MAX_CELL_VALUE:
             if np.max(row) > (2**MAX_CELL_VALUE_THRESHOLD):
                 dropped_counter = dropped_counter + 1
                 continue
+            
+        
+        row_str = get_stringy_row(row)
+        if record_dict.__contains__(row_str):
+            moves_count = record_dict[row_str]
+            move = np.argmax(moves_count)
             
         row = normalize_row(row)
         aug_row_arr = augment_data(row, move)
@@ -163,10 +182,6 @@ for n_file in range(N_FILES):
         processed_data.hist(bins=50, figsize=(20,15))
         plt.show()
         import matplotlib.pyplot as plt
-    
-    for row in augmented_data:
-        move, row = extract_move(row)
-        record_dict = update_record(record_dict, row, move)
 
 
 # In[7]:

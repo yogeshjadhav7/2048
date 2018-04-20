@@ -84,9 +84,9 @@ custom_scorer = make_scorer(custom_score_calculator, greater_is_better=True)
 features, labels = get_features_labels(0, direc=PROCESSED_GAMES_DIR, validation=True)
 
 parameters = {
-    'max_depth' : [(x + 2) for x in range(50)],
-    'min_samples_split' : [(x + 2) for x in range(30)],
-    'n_estimators' : [(x + 1) for x in range(200)]
+    'max_depth' : [(x + 2) for x in range(30)],
+    'min_samples_split' : [(x + 2) for x in range(20)],
+    'n_estimators' : [(x + 1) for x in range(100)]
 }
 
 print("\n\n\nTuned params: ", parameters)
