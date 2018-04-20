@@ -45,7 +45,7 @@ from keras.callbacks import ModelCheckpoint, EarlyStopping
 from keras.models import load_model
 
 batch_size = 32
-epochs = 150
+epochs = 30
 
 size = N_SIZE
 num_classes = len(MOVES)
@@ -53,7 +53,7 @@ droprate = 0.7
 N_MODELS = N_FILES
 
 def create_model(index, show_summary=False):
-    model_name = str(index) + "_" + MODEL_NAME
+    model_name = MODEL_NAME#str(index) + "_" + MODEL_NAME
     
     try:
         model = load_model(model_name)
@@ -61,8 +61,8 @@ def create_model(index, show_summary=False):
         model = None
 
     if model is None:
-        activation_fn = 'tanh'
-        n_feature_maps = 64
+        activation_fn = 'elu'
+        n_feature_maps = 68
 
         model = Sequential()
         model.add(Conv2D(8 * n_feature_maps, kernel_size=(1, 1), strides=(1, 1), activation=activation_fn, input_shape=(N_SIZE, N_SIZE, 1)))
@@ -160,9 +160,7 @@ def get_features_labels(n_file, direc, group_n_games = N_FILES, validation=False
         filename = GAME_STATE_FILE_NAME + str(n_file % N_FILES) + GAME_STATE_FILE_EXT
         n_file = n_file - 1
         
-        if validation:
-            print("Validating on " + filename)
-        else:
+        if not validation:
             print("Training on " + filename)
             
         data = load_data(file=filename, direc=direc)
@@ -189,12 +187,13 @@ def get_features_labels(n_file, direc, group_n_games = N_FILES, validation=False
 # In[4]:
 
 
+val_features, val_labels = get_features_labels(0, direc=PROCESSED_GAMES_DIR, validation=True)
+
 for n_file in range(N_FILES):
     model_name, model = create_model(index=(n_file % N_MODELS))
     callbacks = [ModelCheckpoint(model_name, monitor='val_acc', verbose=1, save_best_only=True, save_weights_only=False, mode='max', period=1)]
     print("\n\n\n\n\nSTARTED WITH GAME #" + str(n_file))
     features, labels = get_features_labels(n_file, direc=PROCESSED_GAMES_DIR)
-    val_features, val_labels = get_features_labels(n_file, direc=PROCESSED_GAMES_DIR, group_n_games=1, validation=True)
     
     if TRAIN_MODEL:
         history = model.fit(features, labels,
@@ -206,8 +205,8 @@ for n_file in range(N_FILES):
     else:
         print("Opted not to train the model as TRAIN_MODEL is set to False. May be because model is already trained and is now being used for validation")
         
-#saved_model = load_model(MODEL_NAME)
-#score = saved_model.evaluate(val_features, val_labels, verbose=0)
-#print('Saved Model Test loss:', score[0])
-#print('Saved Model Test accuracy:', score[1])
+saved_model = load_model(MODEL_NAME)
+score = saved_model.evaluate(val_features, val_labels, verbose=0)
+print('Saved Model Test loss:', score[0])
+print('Saved Model Test accuracy:', score[1])
 
