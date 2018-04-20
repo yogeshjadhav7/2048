@@ -1,7 +1,7 @@
 
 # coding: utf-8
 
-# In[1]:
+# In[8]:
 
 
 import os
@@ -9,7 +9,6 @@ import cv2
 import pandas as pd
 import math
 import numpy as np
-#import matplotlib.pyplot as plt
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -23,8 +22,12 @@ MOVE_COL_NAME = "MOVE"
 FILE_HEADER = [""]
 N_SIZE = 4
 N_FILES = len(os.listdir(GAMES_DIR))
+
+SHOW_GRAPHS = False
 MAX_CELL_VALUE_THRESHOLD = 10
-CELL_VALUE_RELATIVE_NORMALIZATION = False
+CAP_MAX_CELL_VALUE = False
+CELL_VALUE_RELATIVE_NORMALIZATION = True
+DATA_AUGMENTATION = False
 
 def load_data(file, direc=GAMES_DIR, header=True):
     csv_path = os.path.join(direc, file)
@@ -107,10 +110,15 @@ def augment_data(row, move):
     row_2d = row.reshape(4,4)
     aug_row_arr = []
     moves_arr = []
-    for n in range(len(rot_move_map)):
-        row_2d = np.rot90(row_2d, 1)
-        row = np.array(row_2d.flatten())
-        move = rot_move_map[move]
+    
+    if DATA_AUGMENTATION:
+        for n in range(len(rot_move_map)):
+            row_2d = np.rot90(row_2d, 1)
+            row = np.array(row_2d.flatten())
+            move = rot_move_map[move]
+            row = np.append(row, move)
+            aug_row_arr.append(row)
+    else:
         row = np.append(row, move)
         aug_row_arr.append(row)
         
@@ -132,9 +140,10 @@ for n_file in range(N_FILES):
     for n_row in range(len(data)):
         row = data[n_row]
         move, row = extract_move(row)
-        #if np.max(row) > (2**MAX_CELL_VALUE_THRESHOLD):
-            #dropped_counter = dropped_counter + 1
-            #continue
+        if not CAP_MAX_CELL_VALUE:
+            if np.max(row) > (2**MAX_CELL_VALUE_THRESHOLD):
+                dropped_counter = dropped_counter + 1
+                continue
             
         row = normalize_row(row)
         aug_row_arr = augment_data(row, move)
@@ -146,17 +155,21 @@ for n_file in range(N_FILES):
     processed_data = pd.DataFrame(data, columns=data_col)
     processed_data.to_csv(PROCESSED_GAMES_DIR + GAME_STATE_FILE_NAME + str(n_file) + GAME_STATE_FILE_EXT, sep=',', encoding='utf-8', index=False)
     print("Processing data for game "  + str(n_file))
-    #print("Graphs for game", n_file, ":\n")
-    #%matplotlib inline
-    #processed_data.hist(bins=50, figsize=(20,15))
-    #plt.show()
+    
+    if SHOW_GRAPHS:
+        import matplotlib.pyplot as plt
+        print("Graphs for game", n_file, ":\n")
+        get_ipython().run_line_magic('matplotlib', 'inline')
+        processed_data.hist(bins=50, figsize=(20,15))
+        plt.show()
+        import matplotlib.pyplot as plt
     
     for row in augmented_data:
         move, row = extract_move(row)
         record_dict = update_record(record_dict, row, move)
 
 
-# In[ ]:
+# In[7]:
 
 
 total_counter = 0
