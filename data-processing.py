@@ -25,7 +25,7 @@ N_FILES = len(os.listdir(GAMES_DIR))
 
 SHOW_GRAPHS = False
 MAX_CELL_VALUE_THRESHOLD = 10
-CAP_MAX_CELL_VALUE = False
+CAP_MAX_CELL_VALUE = True
 CELL_VALUE_RELATIVE_NORMALIZATION = True
 DATA_AUGMENTATION = False
 
@@ -89,7 +89,6 @@ def update_record(record_dict, row, move):
     moves[move] = moves[move] + 1
     record_dict[row_str] = moves
     return record_dict
-        
 
 
 # In[5]:
@@ -129,11 +128,8 @@ def augment_data(row, move):
 
 
 record_dict = {}
-total_moves = 0
-dropped_counter = 0
 
 for n_file in range(N_FILES):
-    print("Analyzing file " + str(n_file))
     filename = GAME_STATE_FILE_NAME + str(n_file) + GAME_STATE_FILE_EXT
     data = load_data(file=filename, direc=GAMES_DIR)
     data_col = data.columns
@@ -146,6 +142,23 @@ for n_file in range(N_FILES):
 
         record_dict = update_record(record_dict, row, move)
 
+polluted_counter = 0
+total_counter = 0
+for row_str in record_dict.keys():
+    record = record_dict[row_str]
+    is_polluted = (np.max(record) / np.sum(record)) < 1
+    total_counter = total_counter + np.sum(record)
+    if is_polluted:
+        polluted_counter = polluted_counter + np.sum(record)
+
+print("Pollution ratio: ", (polluted_counter / total_counter))
+
+
+# In[7]:
+
+
+total_moves = 0
+dropped_counter = 0
 
 for n_file in range(N_FILES):
     filename = GAME_STATE_FILE_NAME + str(n_file) + GAME_STATE_FILE_EXT
@@ -186,7 +199,7 @@ for n_file in range(N_FILES):
         import matplotlib.pyplot as plt
 
 
-# In[7]:
+# In[8]:
 
 
 total_counter = 0
