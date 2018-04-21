@@ -84,18 +84,21 @@ custom_scorer = make_scorer(custom_score_calculator, greater_is_better=True)
 features, labels = get_features_labels(0, direc=PROCESSED_GAMES_DIR, validation=True)
 
 parameters = {
-    'max_depth' : [(x + 2) for x in range(30)],
-    'min_samples_split' : [(x + 2) for x in range(20)],
-    'n_estimators' : [(x + 1) for x in range(100)]
+    #'max_depth' : [2], #[(2**(x+1)) for x in range(4)],
+    #'min_samples_split' : [2],  #[(2**(x+1)) for x in range(4)],
+    'n_estimators' : [(2**(x+1)) for x in range(5)]
 }
 
 print("\n\n\nTuned params: ", parameters)
 print("Training started ...")
 clf = GridSearchCV(estimator=RandomForestClassifier(random_state=42), 
                    param_grid=parameters, 
-                   cv=N_FILES,
-                   scoring=custom_scorer,
-                   verbose=1)
+                   cv=10,
+                   #scoring=custom_scorer,
+                   verbose=1,
+	           n_jobs=8)
+
+print("len: ", len(features))
 clf.fit(features, labels)
 print("Training ended ...")
 print("Best params: ", clf.best_params_)
