@@ -133,6 +133,7 @@ total_moves = 0
 dropped_counter = 0
 
 for n_file in range(N_FILES):
+    print("Analyzing file " + str(n_file))
     filename = GAME_STATE_FILE_NAME + str(n_file) + GAME_STATE_FILE_EXT
     data = load_data(file=filename, direc=GAMES_DIR)
     data_col = data.columns
@@ -140,6 +141,9 @@ for n_file in range(N_FILES):
     for n_row in range(len(data)):
         row = data[n_row]
         move, row = extract_move(row)
+        if CAP_MAX_CELL_VALUE and np.max(row) > (2 ** MAX_CELL_VALUE_THRESHOLD):
+            break
+
         record_dict = update_record(record_dict, row, move)
 
 
@@ -153,12 +157,9 @@ for n_file in range(N_FILES):
         row = data[n_row]
         move, row = extract_move(row)
         
-        if CAP_MAX_CELL_VALUE:
-            if np.max(row) > (2**MAX_CELL_VALUE_THRESHOLD):
-                dropped_counter = dropped_counter + 1
-                continue
-            
-        
+        if CAP_MAX_CELL_VALUE and np.max(row) > (2**MAX_CELL_VALUE_THRESHOLD):
+            break
+
         row_str = get_stringy_row(row)
         if record_dict.__contains__(row_str):
             moves_count = record_dict[row_str]
@@ -169,6 +170,7 @@ for n_file in range(N_FILES):
         augmented_data.extend(aug_row_arr)
         
     augmented_data = np.array(augmented_data)
+    dropped_counter = dropped_counter + len(data) - len(augmented_data)
     data = augmented_data
     total_moves = total_moves + len(data)
     processed_data = pd.DataFrame(data, columns=data_col)
