@@ -44,7 +44,7 @@ from sklearn.preprocessing import LabelBinarizer
 from keras.callbacks import ModelCheckpoint, EarlyStopping
 from keras.models import load_model
 
-batch_size = 256
+batch_size = 128
 epochs = 30
 
 size = N_SIZE
@@ -188,7 +188,7 @@ def get_features_labels(n_file, direc, group_n_games = N_FILES, validation=False
 
 
 for n_file in range(N_FILES):
-    features, labels = get_features_labels(n_file, group_n_games = N_FILES-1, direc=PROCESSED_GAMES_DIR, validation=True)
+    features, labels = get_features_labels(n_file, group_n_games=3, direc=PROCESSED_GAMES_DIR, validation=True)
     model_name, model = create_model(index=(n_file % N_MODELS))
     callbacks = [ModelCheckpoint(model_name, monitor='val_acc', verbose=1, save_best_only=True, save_weights_only=False, mode='max', period=1)]
     print("\n\n\n\n\nSTARTED WITH GAME #" + str(n_file))
