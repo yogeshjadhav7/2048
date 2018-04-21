@@ -21,6 +21,7 @@ MOVES = ["UP", "DOWN", "LEFT", "RIGHT"]
 MOVE_COL_NAME = "MOVE"
 N_SIZE = 4
 N_FILES = len(os.listdir(PROCESSED_GAMES_DIR))
+N_VALIDATION_FILES = 39
 TRAIN_MODEL = True
 
 def load_data(file, direc=GAMES_DIR, header=True):
@@ -162,6 +163,8 @@ def get_features_labels(n_file, direc, group_n_games = N_FILES, validation=False
         
         if not validation:
             print("Training on " + filename)
+        else:
+            print("Validating on " + filename)
             
         data = load_data(file=filename, direc=direc)
     
@@ -186,19 +189,21 @@ def get_features_labels(n_file, direc, group_n_games = N_FILES, validation=False
 
 # In[4]:
 
-
-for n_file in range(N_FILES):
-    features, labels = get_features_labels(n_file, group_n_games=3, direc=PROCESSED_GAMES_DIR, validation=True)
+val_features, val_labels = get_features_labels(N_FILES-1, group_n_games=N_VALIDATION_FILES, direc=PROCESSED_GAMES_DIR, validation=True)
+print("Length  of val data: " + str(len(val_labels)))
+n_file = N_FILES - N_VALIDATION_FILES - 1
+while n_file >= 0:
+    #features, labels = get_features_labels(n_file, group_n_games=3, direc=PROCESSED_GAMES_DIR, validation=True)
+    features, labels = get_features_labels(n_file, direc=PROCESSED_GAMES_DIR)
     model_name, model = create_model(index=(n_file % N_MODELS))
     callbacks = [ModelCheckpoint(model_name, monitor='val_acc', verbose=1, save_best_only=True, save_weights_only=False, mode='max', period=1)]
     print("\n\n\n\n\nSTARTED WITH GAME #" + str(n_file))
-    val_features, val_labels = get_features_labels(n_file, direc=PROCESSED_GAMES_DIR)
     
     if TRAIN_MODEL:
         history = model.fit(features, labels,
                         batch_size=batch_size,
                         epochs=epochs,
-                        verbose=1,
+                        verbose=0,
                         validation_data=(val_features, val_labels),
                         callbacks=callbacks)
     else:
