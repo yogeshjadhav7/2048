@@ -68,7 +68,7 @@ def get_features_labels(n_file, direc, group_n_games=N_FILES, validation=False):
 
 
 # Random Forest Classifier
-from sklearn.ensemble import RandomForestClassifier 
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import cross_val_score
 from sklearn.base import clone
 from sklearn.model_selection import GridSearchCV
@@ -84,19 +84,19 @@ custom_scorer = make_scorer(custom_score_calculator, greater_is_better=True)
 features, labels = get_features_labels(0, direc=PROCESSED_GAMES_DIR, validation=True)
 
 parameters = {
-    #'max_depth' : [2], #[(2**(x+1)) for x in range(4)],
-    #'min_samples_split' : [2],  #[(2**(x+1)) for x in range(4)],
-    'n_estimators' : [(2**(x+1)) for x in range(5)]
+    'max_depth' : [(2**(x+4)) for x in range(4)],
+    'min_samples_split' : [(2**(x+4)) for x in range(4)],
+    'n_estimators': [(2**(x+5)) for x in range(4)]
 }
 
 print("\n\n\nTuned params: ", parameters)
 print("Training started ...")
 clf = GridSearchCV(estimator=RandomForestClassifier(random_state=42), 
-                   param_grid=parameters, 
+                   param_grid=parameters,
                    cv=10,
                    #scoring=custom_scorer,
                    verbose=1,
-	           n_jobs=8)
+	               n_jobs=4)
 
 print("len: ", len(features))
 clf.fit(features, labels)
