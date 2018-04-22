@@ -21,7 +21,7 @@ MOVES = ["UP", "DOWN", "LEFT", "RIGHT"]
 MOVE_COL_NAME = "MOVE"
 N_SIZE = 4
 N_FILES = len(os.listdir(PROCESSED_GAMES_DIR))
-N_VALIDATION_FILES = 39
+N_VALIDATION_FILES = N_FILES % 50
 TRAIN_MODEL = True
 
 def load_data(file, direc=GAMES_DIR, header=True):
@@ -45,8 +45,8 @@ from sklearn.preprocessing import LabelBinarizer
 from keras.callbacks import ModelCheckpoint, EarlyStopping
 from keras.models import load_model
 
-batch_size = 128
-epochs = 30
+batch_size = 256
+epochs = 20
 
 size = N_SIZE
 num_classes = len(MOVES)
@@ -63,7 +63,7 @@ def create_model(index, show_summary=False):
 
     if model is None:
         activation_fn = 'elu'
-        n_feature_maps = 68
+        n_feature_maps = 128
 
         model = Sequential()
         model.add(Conv2D(8 * n_feature_maps, kernel_size=(1, 1), strides=(1, 1), activation=activation_fn, input_shape=(N_SIZE, N_SIZE, 1)))
@@ -153,8 +153,8 @@ def get_features_labels(n_file, direc, group_n_games = N_FILES, validation=False
     x = []
     y = []
     
-    if not validation:
-        group_n_games = 1
+    #if not validation:
+        #group_n_games = 1
     
     for indx in range(group_n_games):
         
@@ -192,12 +192,16 @@ def get_features_labels(n_file, direc, group_n_games = N_FILES, validation=False
 val_features, val_labels = get_features_labels(N_FILES-1, group_n_games=N_VALIDATION_FILES, direc=PROCESSED_GAMES_DIR, validation=True)
 print("Length  of val data: " + str(len(val_labels)))
 n_file = N_FILES - N_VALIDATION_FILES - 1
-while n_file >= 0:
+
+model_name, model = create_model(index=(0 % N_MODELS))
+callbacks = [ModelCheckpoint(model_name, monitor='val_acc', verbose=1, save_best_only=True, save_weights_only=False, mode='max', period=1)]
+jumps = 10
+while (n_file - jumps) >= 0:
     #features, labels = get_features_labels(n_file, group_n_games=3, direc=PROCESSED_GAMES_DIR, validation=True)
-    features, labels = get_features_labels(n_file, direc=PROCESSED_GAMES_DIR)
-    model_name, model = create_model(index=(n_file % N_MODELS))
-    callbacks = [ModelCheckpoint(model_name, monitor='val_acc', verbose=1, save_best_only=True, save_weights_only=False, mode='max', period=1)]
-    print("\n\n\n\n\nSTARTED WITH GAME #" + str(n_file))
+    features, labels = get_features_labels(n_file, group_n_games=jumps, direc=PROCESSED_GAMES_DIR)
+    #model_name, model = create_model(index=(n_file % N_MODELS))
+    #callbacks = [ModelCheckpoint(model_name, monitor='val_acc', verbose=1, save_best_only=True, save_weights_only=False, mode='max', period=1)]
+    #print("\n\n\n\n\nSTARTED WITH GAME #" + str(n_file))
     
     if TRAIN_MODEL:
         history = model.fit(features, labels,
@@ -208,7 +212,14 @@ while n_file >= 0:
                         callbacks=callbacks)
     else:
         print("Opted not to train the model as TRAIN_MODEL is set to False. May be because model is already trained and is now being used for validation")
-        
+    
+    n_file = n_file - jumps
+
+    score = model.evaluate(val_features, val_labels, verbose=0)
+    print('Model Test loss:', score[0])
+    print('Model Test accuracy:', score[1])
+
+
 saved_model = load_model(MODEL_NAME)
 score = saved_model.evaluate(val_features, val_labels, verbose=0)
 print('Saved Model Test loss:', score[0])
